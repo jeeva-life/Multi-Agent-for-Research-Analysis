@@ -5,7 +5,7 @@ from typing import Optional, cast
 class ResearchAnalystException(Exception):
     def __init__(self, error_message, error_details: Optional[object] = None):
         # Normalize message to a string
-        if isinstance(error_message, BaseException):
+        if isinstance(error_message, BaseException): # If the user passed an exception object, convert it into readable text (via str()).
             norm_msg = str(error_message)
         else:
             norm_msg = error_message
@@ -18,6 +18,15 @@ class ResearchAnalystException(Exception):
             if hasattr(error_details, "exc_info"): # e.g., sys
                 exc_info_obj = cast(sys, error_details)
                 exc_type, exc_value, exc_tb = exc_info_obj.exc_info()
+            """
+            If a real exception object is passed, extract:
+
+             -   Its type (type(error_details))
+
+             -   The exception instance
+
+             -   Its traceback (__traceback__)
+            """
             elif isinstance(error_details, Exception): # e.g., a raised exception
                 exc_type, exc_value, exc_tb = type(error_details), error_details, error_details.__traceback__
             else:
@@ -34,11 +43,13 @@ class ResearchAnalystException(Exception):
 
         # Full traceback as string if available
         if exc_type and exc_tb:
-            self.traceback_str = ''.join(traceback.format_exception(exc_type, exc_value, exc_tb))
+            self.traceback_str = ''.join(traceback.format_exception(exc_type, exc_value, exc_tb)) # Converts traceback into a multiline string using format_exception.
         else:
             self.traceback_str = "<no traceback available>"
         
-        super().__init__(self.__str__())
+        super().__init__(self.__str__()) # Calls the base Exception constructor.
+
+        # This ensures that printing the exception prints a nice readable message.
 
     def __str__(self):
         # compact, logger-friendly message (no leading spaces)
@@ -49,4 +60,4 @@ class ResearchAnalystException(Exception):
 
     def __repr__(self):
         return f"ResearchAnalysisException(file={self.filename!r}, line={self.lineno}, message={self.error_message!r})"
-        
+
